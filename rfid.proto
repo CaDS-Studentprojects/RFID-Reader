@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+service RFID_SERVICE {
+    // Make RPC on function RFID_Change with message RFID_MSG
+    // Waits for RFID_RESPONSE from server
+    rpc RFID_Change (RFID_MSG) returns (RFID_RESPONSE) {}
+}
+
+message RFID_MSG {
+    int32 id = 1;
+    string name_login = 2;
+    string name_logout = 3;
+    string user_list = 4;
+}
+
+message RFID_RESPONSE {
+    bool success = 1;
+}

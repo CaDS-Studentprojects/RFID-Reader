@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <link rel="icon" href="http://getbootstrap.com/favicon.ico">
+      <title>HAW Hackathon 2017: RFID Securitity Access</title>
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <link href="css/narrow-jumbotron.css" rel="stylesheet">
+      <style type="text/css">
+         :root #content > #right > .dose > .dosesingle,
+         :root #content > #center > .dose > .dosesingle
+         { display: none !important; }
+         span.online{color:green;}
+         span.offline{color:red;}
+      </style>
+   </head>
+   <body>
+      <div class="container">
+         <div class="header clearfix">
+            <h3 class="text-muted">HAW Hackathon 2017: RFID Security Access</h3>
+         </div>
+         <div class="jumbotron">
+            <h2 class="display-3">System: <span class="offline">offline</span></h2>
+            <img src="img/rfid.png" width="200" />
+            <ul class="list-group" style="margin-top: 20px;"></ul>
+         </div>
+         <footer class="footer">
+            <p>By Mikko Eberhardt, Denis Lugowski</p>
+         </footer>
+      </div>
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+      <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+      <script>
+          var client = new Paho.MQTT.Client("etoPiBastelei", 9001, "Browser");
+
+          client.onConnectionLost = onConnectionLost;
+          client.onMessageArrived = onMessageArrived;
+
+          client.connect({onSuccess:onConnect});
+
+          function onConnect() {
+            console.log("onConnect");
+            client.subscribe("rfid/#");
+            console.log("Subscribed to all RFID topics");
+          }
+
+          function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+              console.log("onConnectionLost:"+responseObject.errorMessage);
+            }
+          }
+
+          function removeUser(content) {
+            console.log("removeUser " + content);
+            $("li.list-group-item._" + content).remove();
+
+            if ($("ul.list-group").is(':empty')) {
+              setSystemStatus(false);
+            }
+          }
+
+          function setSystemStatus(isOnline) {
+            status = "online";
+            if (isOnline) {
+
+            } else {
+              status = "offline";
+            }
+
+            $("h2.display-3").html("System: " + '<span class="' + status + '">' + status + "</span>");
+          }
+
+
+          function addUser(content) {
+            $("ul.list-group").append('<li class="list-group-item _' + content[0] + '">' + content[1]  + '</li>')
+
+            setSystemStatus(true);
+          }
+
+          function onMessageArrived(message) {
+            console.log("onMessageArrived:" + message.payloadString);
+            str_arr = message.payloadString.split(";");
+
+            if (isLoggedIn(str_arr[2])) {
+              addUser(str_arr);
+            } else {
+              removeUser(str_arr[0]);
+            }
+          }
+
+          function isLoggedIn(content) {
+            loggedIn = true;
+            console.log("isLoggedIn: " + content);
+
+            if (content.includes("out")) {
+              loggedIn = false;
+            }
+
+            return loggedIn;
+          }
+
+      </script>
+   </body>
+   <autoscroll></autoscroll>
+</html>
